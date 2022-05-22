@@ -9,7 +9,8 @@ const itemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  deleted: Boolean,
+  deletedState: Boolean,
+  editState: Boolean,
 });
 
 itemSchema.set("toJSON", {

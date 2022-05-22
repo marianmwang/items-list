@@ -1,43 +1,17 @@
 import "./App.css";
 import Item from "./components/Item";
-import { useState } from "react";
+import itemService from "./services/items";
+import { useState, useEffect } from "react";
 
 function App() {
-  let items0 = [
-    {
-      name: "apple",
-      quantity: 0,
-      id: 0,
-      editState: false,
-      deletedState: false,
-    },
-    {
-      name: "pineapple",
-      quantity: 3,
-      id: 1,
-      editState: false,
-      deletedState: false,
-    },
-    {
-      name: "pear",
-      quantity: 10,
-      id: 2,
-      editState: false,
-      deletedState: false,
-    },
-    {
-      name: "apricot",
-      quantity: 5,
-      id: 3,
-      editState: false,
-      deletedState: true,
-    },
-  ];
-
-  const [items, setItems] = useState(items0);
+  const [items, setItems] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
   const [newItemName, setNewItemN] = useState("");
   const [newItemQuantity, setNewItemQ] = useState(0);
+
+  useEffect(() => {
+    itemService.getAll().then((initialNotes) => setItems(initialNotes));
+  }, []);
 
   const handleNameChange = (event) => {
     setNewItemN(event.target.value);
@@ -55,8 +29,13 @@ function App() {
       quantity: newItemQuantity,
       editState: false,
       deletedState: false,
-      id: Math.floor(Math.random() * 10000),
     };
+
+    itemService.create(newItem).then((returnedItem) => {
+      setItems(items.concat(returnedItem));
+      setNewItemN("");
+      setNewItemQ("");
+    });
 
     setItems(items.concat(newItem));
   };
@@ -64,18 +43,24 @@ function App() {
   const toggleEdit = (id) => {
     const item = items.find((i) => i.id === id);
     const changedItem = { ...item, editState: !item.editState };
-    setItems(items.map((i) => (i.id === id ? changedItem : i)));
+
+    itemService.update(id, changedItem).then((returnedItem) => {
+      setItems(items.map((i) => (i.id === id ? returnedItem : i)));
+    });
   };
 
   const toggleDelete = (id) => {
     const item = items.find((i) => i.id === id);
     const changedItem = { ...item, deletedState: !item.deletedState };
-    setItems(items.map((i) => (i.id === id ? changedItem : i)));
+
+    itemService.update(id, changedItem).then((returnedItem) => {
+      setItems(items.map((i) => (i.id === id ? returnedItem : i)));
+    });
   };
 
   const handlePermanentDelete = (id) => {
-    const item = items.find((i) => i.id === id);
-    setItems(items.filter((i) => i.id !== item.id));
+    itemService.deleteItem(id);
+    setItems(items.filter((i) => i.id !== id));
   };
 
   const itemsToShow = showDeleted
